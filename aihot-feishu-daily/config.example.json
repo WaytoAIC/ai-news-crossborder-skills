@@ -1,0 +1,6 @@
+{
+  "feishu_doc_url": "https://www.feishu.cn/wiki/your_doc_token",
+  "feishu_doc_id": "your_doc_id_optional",
+  "lark_identity": "user",
+  "report_days": 3
+}

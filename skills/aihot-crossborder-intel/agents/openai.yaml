@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI HOT Cross-Border Intel"
+  short_description: "Turn AI HOT updates into cross-border ecommerce actions."
+  default_prompt: "Use $aihot-crossborder-intel to find recent AI HOT items that matter to cross-border ecommerce sellers and produce an action-oriented Chinese report."
