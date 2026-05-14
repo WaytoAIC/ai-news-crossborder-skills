@@ -20,6 +20,12 @@ LOCAL_HEX2077_SCRIPT = (
 INSTALLED_HEX2077_SCRIPT = Path(
     "/Users/wesleyzane/.codex/skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py"
 )
+LOCAL_AMAZONNEWS_SCRIPT = (
+    REPO_ROOT / "skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py"
+)
+INSTALLED_AMAZONNEWS_SCRIPT = Path(
+    "/Users/wesleyzane/.codex/skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py"
+)
 UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -257,6 +263,32 @@ def fetch_hex2077_items() -> tuple[list[dict], dict]:
     return items, packet
 
 
+def fetch_amazonnews_items(take: int = 12) -> tuple[list[dict], dict]:
+    amazonnews_script = (
+        LOCAL_AMAZONNEWS_SCRIPT if LOCAL_AMAZONNEWS_SCRIPT.exists() else INSTALLED_AMAZONNEWS_SCRIPT
+    )
+    if not amazonnews_script.exists():
+        raise FileNotFoundError(
+            f"Amazon official news skill script not found: {LOCAL_AMAZONNEWS_SCRIPT} "
+            f"or {INSTALLED_AMAZONNEWS_SCRIPT}"
+        )
+    result = subprocess.run(
+        [sys.executable, str(amazonnews_script), "--take", str(take), "--items-json"],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=90,
+    )
+    if result.returncode != 0:
+        message = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(f"Amazon official news fetch failed: {message}")
+    packet = json.loads(result.stdout)
+    items = packet.get("items") or []
+    for item in items:
+        item["sourceFeed"] = "amazonnews"
+    return items, packet
+
+
 def item_key(item: dict) -> str:
     url = str(item.get("url") or "").strip().rstrip("/")
     if url:
@@ -311,6 +343,17 @@ def fetch_items(days: int, sources: list[str], errors: list[dict]) -> tuple[list
             }
         except Exception as exc:
             errors.append({"source": "hex2077", "error": str(exc)})
+    if "amazonnews" in sources:
+        try:
+            items, packet = fetch_amazonnews_items()
+            source_items.append(items)
+            packets["amazonnews"] = {
+                "items": len(items),
+                "index_url": packet.get("index_url"),
+                "rss_url": packet.get("rss_url"),
+            }
+        except Exception as exc:
+            errors.append({"source": "amazonnews", "error": str(exc)})
     return merge_items(source_items), packets
 
 
@@ -359,10 +402,34 @@ def source_counts(items: list[dict]) -> dict[str, int]:
     return counts
 
 
+def has_feed(item: dict, feed: str) -> bool:
+    feeds = {value for value in str(item.get("sourceFeed") or "").split("+") if value}
+    return feed in feeds
+
+
+def escape_cell(value: object) -> str:
+    return str(value or "").replace("|", "\\|").replace("\n", "<br>")
+
+
+def amazon_reportable(item: dict) -> bool:
+    signal = str(item.get("amazonSignal") or "")
+    priority = str(item.get("priority") or "")
+    if signal == "健康类目与合规边界":
+        return False
+    if signal == "Amazon 官方运营信号" and priority == "观察":
+        return False
+    return True
+
+
 def build_report(items: list[dict], days: int, sources: list[str], errors: list[dict]) -> str:
     now_cn = datetime.now(timezone(timedelta(hours=8)))
+    amazon_items = [
+        item for item in items if has_feed(item, "amazonnews") and amazon_reportable(item)
+    ][:12]
     rows: list[dict] = []
     for item in items:
+        if has_feed(item, "amazonnews"):
+            continue
         score, themes = score_item(item)
         if score < 10 or not themes:
             continue
@@ -386,10 +453,10 @@ def build_report(items: list[dict], days: int, sources: list[str], errors: list[
         category_counts[category] = category_counts.get(category, 0) + 1
 
     lines = [
-        f"## {now_cn:%Y-%m-%d} AI HOT + HEX2077 × 跨境电商价值日报",
+        f"## {now_cn:%Y-%m-%d} AI HOT + HEX2077 + Amazon 官方 × 跨境电商价值日报",
         "",
         f"- 分析时间：{now_cn:%Y-%m-%d %H:%M} 北京时间",
-        f"- 数据口径：{', '.join(sources)} 双源合并；AI HOT 最近 {days} 天精选 + HEX2077 最新日报，共 {len(items)} 条",
+        f"- 数据口径：{', '.join(sources)} 多源合并；AI HOT 最近 {days} 天精选 + HEX2077 最新日报 + Amazon 官方 Stores and Shopping News，共 {len(items)} 条",
         "- 筛选原则：优先保留能影响跨境团队选品、广告素材、Listing/VOC、客服、自动化和合规的条目",
         "",
     ]
@@ -411,6 +478,16 @@ def build_report(items: list[dict], days: int, sources: list[str], errors: list[
         lines.append("最值得关注的方向：" + "、".join(top_themes) + "。")
     else:
         lines.append("今天没有明显高价值跨境电商条目，建议只做观察，不投入流程改造。")
+    if amazon_items:
+        amazon_signals = []
+        for item in amazon_items:
+            signal = str(item.get("amazonSignal") or "")
+            if signal and signal not in amazon_signals:
+                amazon_signals.append(signal)
+            if len(amazon_signals) == 3:
+                break
+        if amazon_signals:
+            lines.append("Amazon 官方信号重点：" + "、".join(amazon_signals) + "。")
 
     lines.extend(
         [
@@ -437,6 +514,31 @@ def build_report(items: list[dict], days: int, sources: list[str], errors: list[
                 action=row["action"],
             )
         )
+
+    if amazon_items:
+        lines.extend(
+            [
+                "",
+                "### Amazon 官方信号",
+                "",
+                "| 优先级 | 官方新闻 | 原文核心 | 跨境分析 | 建议动作 |",
+                "|---|---|---|---|---|",
+            ]
+        )
+        for item in amazon_items:
+            title = escape_cell(item.get("title") or "未命名")
+            url = item.get("url") or ""
+            source = escape_cell(item.get("source") or "Amazon News：Stores and Shopping")
+            official_news = f"[{title}]({url})<br>{source}<br>{fmt_date(item.get('publishedAt') or '')}"
+            lines.append(
+                "| {priority} | {official_news} | {source_core} | {analysis} | {action} |".format(
+                    priority=escape_cell(item.get("priority") or "观察"),
+                    official_news=official_news,
+                    source_core=escape_cell(item.get("sourceCore") or item.get("summary") or ""),
+                    analysis=escape_cell(item.get("sellerAnalysis") or ""),
+                    action=escape_cell(item.get("recommendedAction") or ""),
+                )
+            )
 
     lines.extend(
         [
@@ -476,8 +578,8 @@ def main() -> int:
     parser.add_argument("--state-dir", default="state")
     parser.add_argument(
         "--sources",
-        default="aihot,hex2077",
-        help="Comma-separated source list. Supported: aihot,hex2077.",
+        default="aihot,hex2077,amazonnews",
+        help="Comma-separated source list. Supported: aihot,hex2077,amazonnews.",
     )
     parser.add_argument(
         "--strict-sources",
@@ -487,7 +589,7 @@ def main() -> int:
     args = parser.parse_args()
 
     sources = [source.strip() for source in args.sources.split(",") if source.strip()]
-    unsupported = sorted(set(sources) - {"aihot", "hex2077"})
+    unsupported = sorted(set(sources) - {"aihot", "hex2077", "amazonnews"})
     if unsupported:
         raise SystemExit(f"Unsupported source(s): {', '.join(unsupported)}")
 

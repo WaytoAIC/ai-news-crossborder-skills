@@ -2,7 +2,7 @@
 
 ## `aihot-crossborder-intel`
 
-Purpose: analyze AI HOT, HEX2077, and broader AI-industry updates through a cross-border ecommerce lens.
+Purpose: analyze AI HOT, HEX2077, Amazon official news, and broader AI-industry updates through a cross-border ecommerce lens.
 
 Use it when the user asks:
 
@@ -26,16 +26,30 @@ python3 skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py weekl
 
 Main output: a JSON packet with `latest_url`, `title_hint`, and normalized `items[]`.
 
+## `amazon-official-news-bridge`
+
+Purpose: scan Amazon's official Stores and Shopping News page and turn official title/excerpt pairs into seller-facing analysis.
+
+Useful command:
+
+```bash
+python3 skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py --take 12 --items-json
+```
+
+Main output: a JSON packet with `index_url`, `rss_url`, and normalized `items[]`. Each item keeps `sourceCore` for the official original title + excerpt, then adds `sellerAnalysis`, `recommendedAction`, `amazonSignal`, and `priority`.
+
 ## Combined Daily Workflow
 
-The daily workflow chains both sources:
+The daily workflow chains all three sources:
 
 ```text
 AI HOT selected items
   + HEX2077 latest daily items
+  + Amazon official Stores and Shopping News
   -> normalize item schema
   -> dedupe by URL/title
   -> score by ecommerce relevance
+  -> render separate Amazon official signal section
   -> generate Markdown report
   -> optional Feishu publish
 ```
@@ -45,7 +59,7 @@ Default command:
 ```bash
 python3 aihot-feishu-daily/scripts/generate_report.py \
   --days 3 \
-  --sources aihot,hex2077 \
+  --sources aihot,hex2077,amazonnews \
   --output /tmp/aihot-crossborder.md \
   --state-dir /tmp/aihot-state
 ```

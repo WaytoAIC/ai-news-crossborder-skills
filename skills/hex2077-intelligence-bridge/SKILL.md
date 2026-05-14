@@ -83,4 +83,4 @@ Then add a weekly strategic summary and what to watch next.
 ## Notes for This Workspace
 
 - This skill is a supplement to the existing `aihot` workflow, useful when the primary AI HOT source is stale or unreachable.
-- For the `AI HOT 跨境电商价值日报` automation, the intended chain is: AI HOT fetcher + HEX2077 `--items-json` -> normalized item list -> cross-border scoring/filtering -> Feishu publishing.
+- For the `AI HOT 跨境电商价值日报` automation, the intended chain is: AI HOT fetcher + HEX2077 `--items-json` + Amazon official news packet -> normalized item list -> cross-border scoring/filtering -> Amazon official signal section -> Feishu publishing.

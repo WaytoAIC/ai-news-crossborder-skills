@@ -19,6 +19,7 @@ def main() -> int:
     required = [
         ROOT / "skills/aihot-crossborder-intel/SKILL.md",
         ROOT / "skills/hex2077-intelligence-bridge/SKILL.md",
+        ROOT / "skills/amazon-official-news-bridge/SKILL.md",
         ROOT / "aihot-feishu-daily/scripts/generate_report.py",
         ROOT / "aihot-feishu-daily/scripts/run_daily.sh",
         ROOT / "install.sh",
@@ -29,6 +30,7 @@ def main() -> int:
     for path in [
         ROOT / "skills/aihot-crossborder-intel/scripts/fetch_aihot_items.py",
         ROOT / "skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py",
+        ROOT / "skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py",
         ROOT / "aihot-feishu-daily/scripts/generate_report.py",
     ]:
         py_compile.compile(str(path), doraise=True)
@@ -38,6 +40,22 @@ def main() -> int:
             sys.executable,
             str(ROOT / "skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py"),
             "daily",
+            "--items-json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=90,
+    )
+    if result.returncode != 0:
+        raise SystemExit(result.stderr or result.stdout)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py"),
+            "--take",
+            "3",
             "--items-json",
         ],
         check=False,

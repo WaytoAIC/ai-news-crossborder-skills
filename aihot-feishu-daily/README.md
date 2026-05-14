@@ -4,9 +4,11 @@
 
 1. 拉取 AI HOT 最近 3 天精选条目。
 2. 拉取 HEX2077 最新 AI 日报，并转换成与 AI HOT 兼容的条目结构。
-3. 合并、按 URL/标题去重，再按跨境电商价值筛选：广告素材、运营 Agent、数据知识库、客服、多语言、供应链、合规风险。
-4. 生成本地 Markdown 日报到 `reports/`，同日 raw JSON 会记录 `sources`、`sourcePackets`、`errors` 和合并后的 `items`。
-5. 通过 `lark-cli` 追加到同一个飞书文档。
+3. 扫描 Amazon 官方 Stores and Shopping News，并保留官方标题、摘要、分类和链接。
+4. 合并、按 URL/标题去重，再按跨境电商价值筛选：广告素材、运营 Agent、数据知识库、客服、多语言、供应链、合规风险。
+5. 在 Markdown 中单独输出 `Amazon 官方信号`：原文核心、跨境分析和建议动作。
+6. 生成本地 Markdown 日报到 `reports/`，同日 raw JSON 会记录 `sources`、`sourcePackets`、`errors` 和合并后的 `items`。
+7. 通过 `lark-cli` 追加到同一个飞书文档。
 
 ## 手动运行
 
@@ -14,13 +16,13 @@
 bash aihot-feishu-daily/scripts/run_daily.sh
 ```
 
-默认使用 `aihot,hex2077` 双源。调试单一来源时可以直接运行生成器：
+默认使用 `aihot,hex2077,amazonnews` 三源。调试单一来源时可以直接运行生成器：
 
 ```bash
 python3 aihot-feishu-daily/scripts/generate_report.py \
   --days 3 \
-  --sources aihot \
-  --output /tmp/aihot-only.md \
+  --sources amazonnews \
+  --output /tmp/amazonnews-only.md \
   --state-dir /tmp/aihot-state
 ```
 

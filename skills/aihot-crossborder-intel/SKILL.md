@@ -1,30 +1,32 @@
 ---
 name: aihot-crossborder-intel
-description: Analyze AI HOT and HEX2077 updates through a cross-border ecommerce lens. Use when the user asks which AI HOT / HEX2077 / AI news / AI industry updates matter to Amazon sellers, cross-border ecommerce, TikTok Shop, listing work, ad creatives, Amazon Ads, product research, VOC, seller operations, compliance, team automation, Feishu daily reports, WeChat article topic selection, or WaytoAIC-style AI commerce intelligence.
+description: Analyze AI HOT, HEX2077, and Amazon official news updates through a cross-border ecommerce lens. Use when the user asks which AI HOT / HEX2077 / Amazon official / AI news / AI industry updates matter to Amazon sellers, cross-border ecommerce, TikTok Shop, listing work, ad creatives, Amazon Ads, product research, VOC, seller operations, compliance, team automation, Feishu daily reports, WeChat article topic selection, or WaytoAIC-style AI commerce intelligence.
 ---
 
 # AI HOT Cross-Border Intel
 
 ## Overview
 
-Turn AI HOT and HEX2077 from AI-industry news sources into an action-oriented intelligence layer for cross-border ecommerce operators. Treat both as upstream signal sources; add seller relevance, operational impact, action steps, and publishing suitability.
+Turn AI HOT, HEX2077, and Amazon official Stores and Shopping News into an action-oriented intelligence layer for cross-border ecommerce operators. Treat all three as upstream signal sources; add seller relevance, operational impact, action steps, and publishing suitability.
 
 ## Default Workflow
 
 1. Collect recent upstream items.
    - Prefer the existing `aihot` skill when it is already triggered or loaded.
    - Use `hex2077-intelligence-bridge` when the user asks to include HEX2077, or when the daily automation needs the combined source pool.
+   - Use `amazon-official-news-bridge` when the daily automation needs Amazon official platform-side signals.
    - For deterministic collection, run:
 
 ```bash
 python3 scripts/fetch_aihot_items.py --hours 24 --take 50 --format markdown
 python3 "${CODEX_HOME:-$HOME/.codex}/skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py" daily --items-json
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py" --items-json
 ```
 
-For the configured Feishu daily automation, prefer the repository orchestrator because it already normalizes and deduplicates both sources:
+For the configured Feishu daily automation, prefer the repository orchestrator because it already normalizes and deduplicates all sources:
 
 ```bash
-python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --sources aihot,hex2077 --output <report.md> --state-dir aihot-feishu-daily/state
+python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --sources aihot,hex2077,amazonnews --output <report.md> --state-dir aihot-feishu-daily/state
 ```
 
 2. Filter for ecommerce value.
@@ -47,6 +49,7 @@ python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --sources aihot,h
 - If the user explicitly asks for "全部/完整/全量", collect all mode; otherwise stay on selected items.
 - If the user names a company, tool, or topic, use keyword search instead of fetching only the first page.
 - Keep AI HOT / HEX2077 endpoint details out of user-facing output unless the user asks for implementation details.
+- Amazon official news should keep the official title/excerpt as `sourceCore`, then add seller analysis separately.
 
 Useful script examples:
 
@@ -58,7 +61,10 @@ python3 scripts/fetch_aihot_items.py --hours 24 --take 50 --format markdown
 python3 "${CODEX_HOME:-$HOME/.codex}/skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py" daily --items-json
 
 # Combined daily packet and report candidate
-python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --sources aihot,hex2077 --output /tmp/aihot-crossborder.md --state-dir /tmp/aihot-state
+python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --sources aihot,hex2077,amazonnews --output /tmp/aihot-crossborder.md --state-dir /tmp/aihot-state
+
+# Amazon official stores and shopping packet
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py" --take 12 --items-json
 
 # 3-day source packet
 python3 scripts/fetch_aihot_items.py --hours 72 --take 100 --format markdown
@@ -104,6 +110,7 @@ If the only conclusion is "AI industry is moving fast", exclude it.
 
 - `scripts/fetch_aihot_items.py`: Fetches AI HOT source packets with the required browser User-Agent.
 - `${CODEX_HOME:-$HOME/.codex}/skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py`: Fetches HEX2077 latest daily and emits standard item JSON.
-- `aihot-feishu-daily/scripts/generate_report.py`: Orchestrates AI HOT + HEX2077 merged daily reports for Feishu publishing.
+- `${CODEX_HOME:-$HOME/.codex}/skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py`: Fetches Amazon official Stores and Shopping News and emits standard item JSON with seller analysis.
+- `aihot-feishu-daily/scripts/generate_report.py`: Orchestrates AI HOT + HEX2077 + Amazon official merged daily reports for Feishu publishing.
 - `references/scoring.md`: Relevance scorecard and include/exclude rules.
 - `references/output_templates.md`: Daily report, Feishu, and public-topic templates.

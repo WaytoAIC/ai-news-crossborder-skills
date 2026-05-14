@@ -24,6 +24,7 @@ fi
 
 python3 "$ROOT/scripts/generate_report.py" \
   --days 3 \
+  --sources aihot,hex2077,amazonnews \
   --output "$REPORT" \
   --state-dir "$ROOT/state"
 

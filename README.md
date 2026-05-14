@@ -64,17 +64,19 @@
 
 # AI News Cross-Border Skills
 
-AI HOT + HEX2077 双源 AI 资讯采集与跨境电商价值日报技能包。
+AI HOT + HEX2077 + Amazon 官方三源资讯采集与跨境电商价值日报技能包。
 
-This repository packages two Codex skills and one daily reporting workflow that turn AI-industry news into seller-facing actions for cross-border ecommerce teams.
+This repository packages Codex skills and one daily reporting workflow that turn AI-industry and Amazon official platform news into seller-facing actions for cross-border ecommerce teams.
 
 ## What It Does
 
 - Pulls recent selected items from AI HOT.
 - Pulls the latest daily report from HEX2077.
-- Normalizes both sources into one item schema.
+- Scans Amazon's official Stores and Shopping News page for platform-side retail, Prime, AI shopping, logistics, seller, returns, and deal-calendar signals.
+- Normalizes all sources into one item schema.
 - Deduplicates by URL/title.
 - Filters for ecommerce value: ad creatives, listing/content, VOC, customer service, back-office automation, product development, supply chain, and compliance risk.
+- Adds a dedicated `Amazon 官方信号` section with official source core summary, seller analysis, and recommended actions.
 - Generates a Markdown candidate report that can be appended to a Feishu document.
 
 ## Quick Install
@@ -88,7 +90,7 @@ bash install.sh --target codex
 Version-pinned install after releases:
 
 ```bash
-bash install.sh --target codex --ref v1.0.0
+bash install.sh --target codex --ref v1.1.0
 ```
 
 ## Included Skills
@@ -97,6 +99,7 @@ bash install.sh --target codex --ref v1.0.0
 |---|---|
 | `aihot-crossborder-intel` | Turns AI news into cross-border ecommerce actions and report topics. |
 | `hex2077-intelligence-bridge` | Fetches latest HEX2077 daily/weekly entries and emits standard daily item JSON. |
+| `amazon-official-news-bridge` | Scans Amazon official Stores and Shopping News and converts official excerpts into ecommerce analysis. |
 
 See [docs/SKILLS_SUMMARY.md](docs/SKILLS_SUMMARY.md) for the full skill summary.
 
@@ -105,7 +108,7 @@ See [docs/SKILLS_SUMMARY.md](docs/SKILLS_SUMMARY.md) for the full skill summary.
 ```bash
 python3 aihot-feishu-daily/scripts/generate_report.py \
   --days 3 \
-  --sources aihot,hex2077 \
+  --sources aihot,hex2077,amazonnews \
   --output aihot-feishu-daily/reports/aihot-crossborder-$(TZ=Asia/Shanghai date +%F).md \
   --state-dir aihot-feishu-daily/state
 ```
@@ -124,7 +127,7 @@ bash aihot-feishu-daily/scripts/run_daily.sh
 python3 scripts/quick_validate.py
 ```
 
-The validator checks Python syntax, required skill files, and a live HEX2077 daily JSON fetch.
+The validator checks Python syntax, required skill files, and live HEX2077 + Amazon official JSON fetches.
 
 ## Repository Layout
 
@@ -137,6 +140,7 @@ The validator checks Python syntax, required skill files, and a live HEX2077 dai
 ├── docs/
 ├── scripts/
 └── skills/
+    ├── amazon-official-news-bridge/
     ├── aihot-crossborder-intel/
     └── hex2077-intelligence-bridge/
 ```
