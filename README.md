@@ -64,7 +64,7 @@
 
 # AI News Cross-Border Skills
 
-AI HOT + HEX2077 + Amazon 官方三源资讯采集与跨境电商价值日报技能包。
+AI HOT + HEX2077 + Amazon 官方三源默认接入，并支持网页、公众号 URL、RSS 和其他脚本来源的可插拔跨境电商价值日报技能包。
 
 This repository packages Codex skills and one daily reporting workflow that turn AI-industry and Amazon official platform news into seller-facing actions for cross-border ecommerce teams.
 
@@ -73,7 +73,7 @@ This repository packages Codex skills and one daily reporting workflow that turn
 - Pulls recent selected items from AI HOT.
 - Pulls the latest daily report from HEX2077.
 - Scans Amazon's official Stores and Shopping News page for platform-side retail, Prime, AI shopping, logistics, seller, returns, and deal-calendar signals.
-- Normalizes all sources into one item schema.
+- Normalizes all sources into one item schema through a source-adapter pipeline.
 - Deduplicates by URL/title.
 - Filters for ecommerce value: ad creatives, listing/content, VOC, customer service, back-office automation, product development, supply chain, and compliance risk.
 - Adds a dedicated `Amazon 官方信号` section with official source core summary, seller analysis, and recommended actions.
@@ -90,7 +90,7 @@ bash install.sh --target codex
 Version-pinned install after releases:
 
 ```bash
-bash install.sh --target codex --ref v1.1.0
+bash install.sh --target codex --ref v1.2.0
 ```
 
 ## Included Skills
@@ -113,13 +113,21 @@ python3 aihot-feishu-daily/scripts/generate_report.py \
   --state-dir aihot-feishu-daily/state
 ```
 
+List available source adapters and configured sources:
+
+```bash
+python3 aihot-feishu-daily/scripts/generate_report.py --list-sources
+```
+
+To add recurring sources without code changes, copy `aihot-feishu-daily/sources.example.json` to `sources.local.json` and enable `rss`, `webpage`, `wechat_url`, `command_json`, or `manual_items` entries. See [docs/SOURCE_ADAPTERS.md](docs/SOURCE_ADAPTERS.md).
+
 To publish to Feishu, copy `aihot-feishu-daily/config.example.json` to `config.json`, fill in your document URL and identity, then run:
 
 ```bash
 bash aihot-feishu-daily/scripts/run_daily.sh
 ```
 
-`config.json`, generated reports, and state files are intentionally ignored by Git.
+`config.json`, `sources.local.json`, generated reports, and state files are intentionally ignored by Git.
 
 ## Validation
 
@@ -127,7 +135,7 @@ bash aihot-feishu-daily/scripts/run_daily.sh
 python3 scripts/quick_validate.py
 ```
 
-The validator checks Python syntax, required skill files, and live HEX2077 + Amazon official JSON fetches.
+The validator checks Python syntax, required skill files, source config listing, and live HEX2077 + Amazon official JSON fetches.
 
 ## Repository Layout
 
@@ -135,9 +143,11 @@ The validator checks Python syntax, required skill files, and live HEX2077 + Ama
 .
 ├── aihot-feishu-daily/
 │   ├── config.example.json
+│   ├── sources.example.json
 │   ├── scripts/
 │   └── README.md
 ├── docs/
+│   └── SOURCE_ADAPTERS.md
 ├── scripts/
 └── skills/
     ├── amazon-official-news-bridge/

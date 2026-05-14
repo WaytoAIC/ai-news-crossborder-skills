@@ -46,9 +46,10 @@ The daily workflow chains all three sources:
 AI HOT selected items
   + HEX2077 latest daily items
   + Amazon official Stores and Shopping News
-  -> normalize item schema
+  + optional RSS / webpage / WeChat URL / command JSON sources
+  -> source adapters normalize item schema
   -> dedupe by URL/title
-  -> score by ecommerce relevance
+  -> analysis layer scores by ecommerce relevance
   -> render separate Amazon official signal section
   -> generate Markdown report
   -> optional Feishu publish
@@ -63,3 +64,15 @@ python3 aihot-feishu-daily/scripts/generate_report.py \
   --output /tmp/aihot-crossborder.md \
   --state-dir /tmp/aihot-state
 ```
+
+Config-driven sources:
+
+```bash
+cp aihot-feishu-daily/sources.example.json aihot-feishu-daily/sources.local.json
+python3 aihot-feishu-daily/scripts/generate_report.py \
+  --source-config aihot-feishu-daily/sources.local.json \
+  --output /tmp/aihot-crossborder.md \
+  --state-dir /tmp/aihot-state
+```
+
+See `docs/SOURCE_ADAPTERS.md` for the left-side source adapter contract.

@@ -22,18 +22,37 @@ def main() -> int:
         ROOT / "skills/amazon-official-news-bridge/SKILL.md",
         ROOT / "aihot-feishu-daily/scripts/generate_report.py",
         ROOT / "aihot-feishu-daily/scripts/run_daily.sh",
+        ROOT / "aihot-feishu-daily/sources.example.json",
         ROOT / "install.sh",
     ]
     for path in required:
         check_file(path)
 
-    for path in [
+    python_files = [
         ROOT / "skills/aihot-crossborder-intel/scripts/fetch_aihot_items.py",
         ROOT / "skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py",
         ROOT / "skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py",
         ROOT / "aihot-feishu-daily/scripts/generate_report.py",
-    ]:
+    ]
+    python_files.extend((ROOT / "aihot-feishu-daily/scripts/intel_pipeline").rglob("*.py"))
+    for path in python_files:
         py_compile.compile(str(path), doraise=True)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "aihot-feishu-daily/scripts/generate_report.py"),
+            "--source-config",
+            str(ROOT / "aihot-feishu-daily/sources.example.json"),
+            "--list-sources",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if result.returncode != 0:
+        raise SystemExit(result.stderr or result.stdout)
 
     result = subprocess.run(
         [

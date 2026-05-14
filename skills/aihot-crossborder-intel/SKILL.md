@@ -23,10 +23,16 @@ python3 "${CODEX_HOME:-$HOME/.codex}/skills/hex2077-intelligence-bridge/scripts/
 python3 "${CODEX_HOME:-$HOME/.codex}/skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py" --items-json
 ```
 
-For the configured Feishu daily automation, prefer the repository orchestrator because it already normalizes and deduplicates all sources:
+For the configured Feishu daily automation, prefer the repository orchestrator because it already normalizes and deduplicates all sources through source adapters:
 
 ```bash
 python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --sources aihot,hex2077,amazonnews --output <report.md> --state-dir aihot-feishu-daily/state
+```
+
+If additional sources are configured, use the local source config instead of hardcoding a larger source list:
+
+```bash
+python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --source-config aihot-feishu-daily/sources.local.json --output <report.md> --state-dir aihot-feishu-daily/state
 ```
 
 2. Filter for ecommerce value.
@@ -50,6 +56,7 @@ python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --sources aihot,h
 - If the user names a company, tool, or topic, use keyword search instead of fetching only the first page.
 - Keep AI HOT / HEX2077 endpoint details out of user-facing output unless the user asks for implementation details.
 - Amazon official news should keep the official title/excerpt as `sourceCore`, then add seller analysis separately.
+- New upstream channels should be added on the left side as source adapters or `sources.local.json` entries. Do not mix source fetching logic into the analysis rules.
 
 Useful script examples:
 
@@ -65,6 +72,12 @@ python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --sources aihot,h
 
 # Amazon official stores and shopping packet
 python3 "${CODEX_HOME:-$HOME/.codex}/skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py" --take 12 --items-json
+
+# List configured source adapters
+python3 aihot-feishu-daily/scripts/generate_report.py --list-sources
+
+# Run with local source config
+python3 aihot-feishu-daily/scripts/generate_report.py --days 3 --source-config aihot-feishu-daily/sources.local.json --output /tmp/aihot-crossborder.md --state-dir /tmp/aihot-state
 
 # 3-day source packet
 python3 scripts/fetch_aihot_items.py --hours 72 --take 100 --format markdown
@@ -112,5 +125,7 @@ If the only conclusion is "AI industry is moving fast", exclude it.
 - `${CODEX_HOME:-$HOME/.codex}/skills/hex2077-intelligence-bridge/scripts/fetch_latest_hex2077.py`: Fetches HEX2077 latest daily and emits standard item JSON.
 - `${CODEX_HOME:-$HOME/.codex}/skills/amazon-official-news-bridge/scripts/fetch_amazon_official_news.py`: Fetches Amazon official Stores and Shopping News and emits standard item JSON with seller analysis.
 - `aihot-feishu-daily/scripts/generate_report.py`: Orchestrates AI HOT + HEX2077 + Amazon official merged daily reports for Feishu publishing.
+- `aihot-feishu-daily/sources.example.json`: Shows how to add RSS, webpage, WeChat URL, command JSON, and manual item sources.
+- `aihot-feishu-daily/scripts/intel_pipeline/`: Left-side source adapters, right-side analysis, and output renderers.
 - `references/scoring.md`: Relevance scorecard and include/exclude rules.
 - `references/output_templates.md`: Daily report, Feishu, and public-topic templates.

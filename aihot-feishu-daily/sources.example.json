@@ -1,0 +1,78 @@
+{
+  "sources": [
+    {
+      "id": "aihot",
+      "enabled": true
+    },
+    {
+      "id": "hex2077",
+      "enabled": true
+    },
+    {
+      "id": "amazonnews",
+      "enabled": true
+    },
+    {
+      "id": "example_rss",
+      "name": "示例 RSS 信息源",
+      "adapter": "rss",
+      "enabled": false,
+      "source_type": "rss",
+      "url": "https://example.com/feed.xml",
+      "take": 20,
+      "category": "external-rss"
+    },
+    {
+      "id": "example_webpage",
+      "name": "示例网页信息源",
+      "adapter": "webpage",
+      "enabled": false,
+      "source_type": "webpage",
+      "urls": [
+        "https://example.com/article"
+      ],
+      "category": "external-webpage"
+    },
+    {
+      "id": "example_wechat_url",
+      "name": "示例公众号网址",
+      "adapter": "wechat_url",
+      "enabled": false,
+      "source_type": "wechat_url",
+      "urls": [
+        "https://mp.weixin.qq.com/s/example"
+      ],
+      "category": "wechat-url"
+    },
+    {
+      "id": "example_command_json",
+      "name": "示例其他来源：命令输出 JSON",
+      "adapter": "command_json",
+      "enabled": false,
+      "source_type": "external_command",
+      "command": [
+        "{python}",
+        "{repo_root}/path/to/fetch_source.py",
+        "--items-json"
+      ],
+      "timeout": 90
+    },
+    {
+      "id": "example_manual_items",
+      "name": "示例其他来源：手工条目",
+      "adapter": "manual_items",
+      "enabled": false,
+      "source_type": "manual",
+      "items": [
+        {
+          "title": "示例标题",
+          "url": "https://example.com/manual",
+          "source": "手工来源",
+          "publishedAt": "",
+          "summary": "这里放原始摘要。"
+        }
+      ]
+    }
+  ]
+}
+

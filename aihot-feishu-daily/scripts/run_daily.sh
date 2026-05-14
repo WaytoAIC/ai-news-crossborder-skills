@@ -6,6 +6,7 @@ CONFIG="$ROOT/config.json"
 DATE="$(TZ=Asia/Shanghai date +%F)"
 REPORT="$ROOT/reports/aihot-crossborder-$DATE.md"
 LAST_PUBLISHED="$ROOT/state/last_published_date"
+SOURCE_CONFIG="$ROOT/sources.local.json"
 FORCE=0
 
 if [[ "${1:-}" == "--force" ]]; then
@@ -22,11 +23,19 @@ if [[ "$FORCE" != "1" && -f "$LAST_PUBLISHED" && "$(cat "$LAST_PUBLISHED")" == "
   exit 0
 fi
 
-python3 "$ROOT/scripts/generate_report.py" \
-  --days 3 \
-  --sources aihot,hex2077,amazonnews \
-  --output "$REPORT" \
+GENERATOR_ARGS=(
+  --days 3
+  --output "$REPORT"
   --state-dir "$ROOT/state"
+)
+
+if [[ -f "$SOURCE_CONFIG" ]]; then
+  GENERATOR_ARGS+=(--source-config "$SOURCE_CONFIG")
+else
+  GENERATOR_ARGS+=(--sources aihot,hex2077,amazonnews)
+fi
+
+python3 "$ROOT/scripts/generate_report.py" "${GENERATOR_ARGS[@]}"
 
 DOC="$(jq -r '.feishu_doc_url // empty' "$CONFIG")"
 IDENTITY="$(jq -r '.lark_identity // "bot"' "$CONFIG")"

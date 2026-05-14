@@ -5,6 +5,7 @@ __pycache__/
 venv/
 
 aihot-feishu-daily/config.json
+aihot-feishu-daily/sources.local.json
 aihot-feishu-daily/state/
 aihot-feishu-daily/reports/
 
