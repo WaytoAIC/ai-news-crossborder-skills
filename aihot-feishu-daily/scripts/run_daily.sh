@@ -45,10 +45,12 @@ if [[ -z "$DOC" || "$DOC" == "null" ]]; then
   exit 1
 fi
 
-python3 /Users/wesleyzane/.codex/skills/lark-report-publisher/scripts/publish_to_lark.py \
-  --input-file "$REPORT" \
+lark-cli docs +update \
   --doc "$DOC" \
-  --as "$IDENTITY"
+  --command append \
+  --doc-format markdown \
+  --content - \
+  --as "$IDENTITY" < "$REPORT"
 
 printf "%s" "$DATE" > "$LAST_PUBLISHED"
 echo "Published $REPORT to Feishu document."
